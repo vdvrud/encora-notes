@@ -27,7 +27,6 @@
     "@babel/core": "^7.12.10",
     "@babel/node": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
-    "babel-cli": "^6.26.0",
     "nodemon": "^2.0.7",
     "rimraf": "^3.0.2"
   }
