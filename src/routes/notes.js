@@ -1,7 +1,7 @@
 import express from 'express';
 import { check, param } from 'express-validator';
 import { ObjectId } from 'mongodb';
-import { notesFolder, noteUpload } from '../commons/image';
+import { createUrl, notesFolder, noteUpload } from '../commons/image';
 import { verifyUser } from '../commons/jwt_auth';
 import { createResponse, response } from '../commons/response';
 import { validatePayload } from '../commons/validation';
@@ -91,7 +91,31 @@ router.delete('/deleteNote/:note_id', verifyUser,async(req, res) => {
 } 
 });
 
-router.get('/notes/:page/:limit', verifyUser, async(req, res) => {
+router.get('/note/:_id', [
+    verifyUser,
+    createUrl
+], async(req, res) => {
+    try {
+        const { _id } = req.params;
+        const valid = ObjectId.isValid(_id);
+        if(!valid) {
+            return response(res, 400, createResponse('Note not found, please try again !'))
+        }
+        const note = await Notes.findOne({ _id }).lean();
+        if(!note) {
+            return response(res, 400, createResponse('Note not found, please try again !'))
+        }
+        note.image = req.url + note.image;
+        response(res, 200, createResponse(note));
+    } catch (error) {
+        
+    }
+})
+
+router.get('/notes/:page/:limit', [
+    verifyUser,
+    createUrl
+], async(req, res) => {
     try {
         let { params: { page, limit }, user: { _id } } = req;
         page = parseInt(page), limit = parseInt(limit);
@@ -109,6 +133,14 @@ router.get('/notes/:page/:limit', verifyUser, async(req, res) => {
             },
             {
                 $limit: limit
+            },
+            {
+                $project: {
+                    data: '$$ROOT',
+                    image: {
+                        $concat: [req.url, '$image']
+                    }
+                }
             }
         ]);
         response(res, 200, createResponse(notes));
