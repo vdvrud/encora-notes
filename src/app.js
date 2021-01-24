@@ -4,6 +4,7 @@ import { json, urlencoded } from 'body-parser';
 import path from 'path';
 import { userRouter } from './routes/user';
 import { notesRouter } from './routes/notes';
+import { createResponse, response } from './commons/response';
 // Configuring env vars for local development
 require('dotenv').config();
 
@@ -16,5 +17,9 @@ app.use(express.static(path.join(__dirname + '/')));
 
 app.use('/user', userRouter);
 app.use('/note', notesRouter);
+
+app.all('*', async (req, res) => {
+    response(res, 404, createResponse('Route Not Found !'))
+  });
 
 export { app };
